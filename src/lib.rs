@@ -1,5 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
+use convert_case::{Casing, Case};
 
 fn is_option(ty: &syn::TypePath) -> bool {
     for segment in &ty.path.segments {
@@ -13,17 +14,17 @@ fn is_option(ty: &syn::TypePath) -> bool {
     false
 }
 
-fn impl_query_params(ast: &syn::DeriveInput) -> TokenStream {
+fn impl_query_params(ast: &syn::DeriveInput, case: Case) -> TokenStream {
     if let syn::Data::Struct(ref data) = ast.data {
         if let syn::Fields::Named(ref fields) = data.fields {
             let field_impl = fields.named.iter().map(|field| {
                 let name = field.ident.as_ref().unwrap();
-                let name_string = name.to_string();
+                let name_string = name.to_string().to_case(case);
                 if let syn::Type::Path(ref path) = field.ty {
                     if is_option(path) {
                         return quote! {
-                            if self.#name.is_some() {
-                                params.insert(#name_string.to_string(), self.#name.as_ref().unwrap().to_string());
+                            if let Some(value) = self.#name.as_ref() {
+                                params.insert(#name_string.to_string(), value.to_string());
                             }
                         };
                     }
@@ -58,5 +59,6 @@ fn impl_query_params(ast: &syn::DeriveInput) -> TokenStream {
 #[proc_macro_derive(HttpQueryParams)]
 pub fn derive_http_query_params(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    impl_query_params(&ast)
+    impl_query_params(&ast, Case::Snake)
 }
+
