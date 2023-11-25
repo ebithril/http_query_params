@@ -1,6 +1,6 @@
+use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use quote::quote;
-use convert_case::{Casing, Case};
 
 fn is_option(ty: &syn::TypePath) -> bool {
     for segment in &ty.path.segments {
@@ -61,4 +61,3 @@ pub fn derive_http_query_params(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
     impl_query_params(&ast, Case::Snake)
 }
-
