@@ -11,6 +11,13 @@ mod tests {
         test_option_int: Option<i32>,
     }
 
+    #[derive(HttpQueryParams, Default)]
+    #[case(camelCase)]
+    struct CamelStruct {
+        test_string: String,
+    }
+    
+
     #[test]
     fn test_string() {
         let test_struct = TestStruct {
@@ -19,7 +26,7 @@ mod tests {
         };
         let params = test_struct.as_map();
 
-        assert_eq!(params["test_string"], "test".to_string());
+        assert_eq!(params["test_string"], test_struct.test_string);
     }
 
     #[test]
@@ -30,7 +37,7 @@ mod tests {
         };
         let params = test_struct.as_map();
 
-        assert_eq!(params["test_option_string"], "test".to_string());
+        assert_eq!(params["test_option_string"], test_struct.test_option_string.unwrap());
     }
 
     #[test]
@@ -41,7 +48,7 @@ mod tests {
         };
         let params = test_struct.as_map();
 
-        assert_eq!(params["test_int"], 1.to_string());
+        assert_eq!(params["test_int"], test_struct.test_int.to_string());
     }
 
     #[test]
@@ -52,7 +59,7 @@ mod tests {
         };
         let params = test_struct.as_map();
 
-        assert_eq!(params["test_option_int"], 1.to_string());
+        assert_eq!(params["test_option_int"], test_struct.test_option_int.unwrap().to_string());
     }
 
     #[test]
@@ -61,5 +68,16 @@ mod tests {
         let params = test_struct.as_map();
 
         assert!(!params.contains_key("test_option"));
+    }
+
+    #[test]
+    fn test_camel_case() {
+        let test_struct = CamelStruct {
+            test_string: "test".to_string(),
+            ..Default::default()
+        };
+        let params = test_struct.as_map();
+
+        assert_eq!(params["testString"], test_struct.test_string);
     }
 }

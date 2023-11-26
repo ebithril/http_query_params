@@ -28,9 +28,8 @@ fn impl_query_params(ast: &syn::DeriveInput, case: Case) -> TokenStream {
                             }
                         };
                     }
-                    else {
-                        return quote!(params.insert(#name_string.to_string(), self.#name.to_string()););
-                    }
+
+                    return quote!(params.insert(#name_string.to_string(), self.#name.to_string()););
                 }
 
                 quote!()
@@ -56,8 +55,25 @@ fn impl_query_params(ast: &syn::DeriveInput, case: Case) -> TokenStream {
     )
 }
 
-#[proc_macro_derive(HttpQueryParams)]
+#[proc_macro_derive(HttpQueryParams, attributes(case))]
 pub fn derive_http_query_params(input: TokenStream) -> TokenStream {
-    let ast = syn::parse(input).unwrap();
-    impl_query_params(&ast, Case::Snake)
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+
+    let mut case = Case::Snake;
+    for attr in &ast.attrs {
+        if !attr.path().is_ident("case") {
+            continue;
+        }
+
+        attr.parse_nested_meta(|meta| {
+            if meta.path.is_ident("camelCase") {
+                case = Case::Camel;
+                return Ok(());
+            }
+
+            Err(meta.error("Non supported case"))
+        }).unwrap();
+    }
+
+    impl_query_params(&ast, case)
 }
