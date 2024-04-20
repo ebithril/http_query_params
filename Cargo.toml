@@ -5,6 +5,7 @@ edition = "2021"
 license-file = "LICENSE"
 repository = "https://github.com/ebithril/http_query_params"
 description = "A small package to it easy to create http query params"
+exclude = [".github/**"]
 
 [lib]
 proc_macro = true
